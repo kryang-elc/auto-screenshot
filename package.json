@@ -1,0 +1,13 @@
+{
+  "name": "screenshot-bot",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "postinstall": "npx playwright install --with-deps chromium",
+    "capture": "node capture.mjs"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
