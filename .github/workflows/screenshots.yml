@@ -1,17 +1,15 @@
 name: Capture screenshots
 
 on:
-  # Run manually anytime
   workflow_dispatch:
-  # Every Monday 13:00 UTC ≈ 9:00 AM ET (DST will shift this by an hour seasonally)
   schedule:
-    - cron: "0 13 * * 1"
+    - cron: "0 13 * * 1" # Mondays 13:00 UTC (~9:00 AM ET)
 
 jobs:
   capture:
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # allow pushing images back to the repo (optional)
+      contents: write
       actions: read
       id-token: write
     steps:
@@ -24,27 +22,16 @@ jobs:
           node-version: "20"
 
       - name: Install deps (Playwright)
-        run: npm ci
+        run: npm install
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
 
       - name: Capture screenshots
         run: npm run capture
 
-      # Option A: Upload as build artifact (kept ~90 days, easy & zero-config)
       - name: Upload screenshots artifact
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-${{ github.run_id }}
           path: out/**
-
-      # Option B (optional): Commit images back to the repo (e.g., keep history)
-      - name: Commit screenshots to repo
-        if: ${{ github.event_name != 'pull_request' }}
-        run: |
-          ts=$(date -u +"%Y-%m-%d_%H-%M-%SZ")
-          mkdir -p history
-          mv out/* "history/" || true
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add history
-          git commit -m "Screenshots: $ts" || echo "Nothing to commit"
-          git push
